@@ -1,7 +1,7 @@
-# MealCI 开发对话记录
+# workbuddy.md · WorkBuddy 开发对话上下文
 
-> 本文档为 **WorkBuddy 开发凭证**（大赛专项奖励申报材料），完整记录 MealCI 从构思到实测的开发过程。
-> 开发时间：2026-10-10 · 开发工具：WorkBuddy（Agent 模式）· 平台：macOS
+> 本文件为大赛要求的 `workbuddy.md`（WorkBuddy 专项奖励必交，文件名不可改动），完整记录 MealCI 使用 **WorkBuddy** 从构思到实测的开发对话上下文。
+> 开发时间：2026-10-10 · 开发工具：WorkBuddy（Agent 模式）· 平台：macOS · 项目：[MealCI](https://github.com/jeahvi/mealci)
 
 ---
 

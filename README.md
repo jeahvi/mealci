@@ -76,27 +76,48 @@ MealCI 的差异在于**流程隐喻**：它不输出"答案"，输出"评审意
 | merge 成功 | mock commit：`feat(order): 巨无霸×1 + 零度可乐×1, all checks passed 🍔` |
 | 券为空 | `CI 环境变量缺失：$COUPON 为空，本单按原价构建` |
 
-## 快速开始
+## 安装方法
 
-1. 按 [MCP.md](./MCP.md) 在 WorkBuddy 里接入麦当劳官方 MCP（需要自备 Token）；
-2. 把本仓库的 `SKILL.md` 导入 WorkBuddy 技能目录；
-3. 新开会话，输入「我想吃点啥」或「看看这一单」即可触发流水线。
+1. 接入麦当劳官方 MCP：按 [MCP_INTEGRATION.md](./MCP_INTEGRATION.md) 在 WorkBuddy 中配置（配置示例见 [mcp-config.example.json](./mcp-config.example.json)，**Token 需自行到 https://open.mcd.cn/mcp 申请**）；
+2. 启用连接器：WorkBuddy 左侧边栏【专家·技能·连接器】→【连接器】→ 右上角【自定义连接器】→ 配置 MCP → 粘贴配置并保存 → **启用 mcd-mcp**；
+3. 导入 Skill：把本仓库的 `SKILL.md` 放入 WorkBuddy 技能目录（或通过技能导入入口加载）；
+4. 验证：新开会话，输入「看看我的优惠券」确认 MCP 已连通，再输入「我想吃点啥」触发 MealCI。
 
-**依赖**：WorkBuddy 客户端 + 麦当劳官方 MCP（Streamable HTTP）。
+**依赖**：WorkBuddy 客户端 + 麦当劳官方 MCP（Streamable HTTP，需自备 Token）。
+
+## 使用示例
+
+| 你说 | 它做什么 |
+|---|---|
+| `我想吃点啥` | 调菜单给 2-3 个候选 commit，选定后开跑四道流水线 |
+| `看看这一单：巨无霸 + 可乐` | 完整跑 lint → test → build → review，输出 MR 卡 |
+| `apply 1` | 采纳第 1 条 lint diff（如可乐换无糖），回写购物车并重跑 lint |
+| `merge` | 确认下单，创建订单并返回支付链接（**支付由你本人完成**） |
+| `close` | 放弃本次构建，不产生任何订单 |
+
+完整真实输出见下方"真实运行记录"。
+
+## 目标用户
+
+- **点餐决策疲劳的上班族**：中午/深夜不知道吃什么，希望有依据、少纠结；
+- **在意营养但不想被说教的人**：需要"可以商量的建议"（diff 式替换）而不是"禁止清单"；
+- **有券但总忘记用的人**：券组合测试阶段会自动把可用券算进去；
+- **麦当劳重度用户 / 有历史订单沉淀的人**：review 阶段基于真实历史做复盘，越用越准。
 
 ## 仓库结构
 
 ```
 MealCI/
-├── README.md            ← 项目介绍（本文件）
-├── SKILL.md             ← Skill 本体（四道流水线规则、PR 卡模板、降级策略）
-├── MCP.md               ← MCP 接入说明
-├── 参赛声明.md           ← 参赛声明
+├── README.md               ← 项目介绍 / 安装方法 / 使用示例 / 目标用户
+├── CONTEST_DECLARATION.md  ← 参赛声明（官方原件，内容未改动）
+├── MCP_INTEGRATION.md      ← MCP Server / Tool / 调用流程 / 业务价值
+├── mcp-config.example.json ← 脱敏 MCP 配置示例（仅环境变量占位符）
+├── workbuddy.md            ← WorkBuddy 开发对话上下文（专项奖励凭证）
+├── SKILL.md                ← Skill 本体（四道流水线规则、MR 卡模板、降级策略）
 └── docs/
-    ├── concept.md         ← 构思案（含被否决方案的留档）
-    ├── smoke-test.md      ← 交付前自测清单（含实测结果）
-    ├── 开发对话记录.md    ← 完整开发过程（WorkBuddy 开发凭证）
-    └── community-post.md  ← 社区发帖文案
+    ├── concept.md          ← 构思案（含被否决方案的留档）
+    ├── smoke-test.md       ← 交付前自测清单（含实测结果）
+    └── community-post.md   ← 社区发帖文案
 ```
 
 ## 合规与边界

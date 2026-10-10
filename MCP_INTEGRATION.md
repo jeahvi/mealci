@@ -1,4 +1,6 @@
-# MCP 接入说明
+# MCP 接入说明（MCP_INTEGRATION）
+
+本文档说明 MealCI 实际使用的**麦当劳 MCP Server、Tool、调用流程与业务价值**，以及接入方法与实测踩坑。
 
 MealCI 依赖**麦当劳中国官方 MCP**。本文说明如何获取 Token 并在 WorkBuddy 中完成接入，以及实测确认的接口细节。
 
@@ -84,3 +86,31 @@ MealCI 依赖**麦当劳中国官方 MCP**。本文说明如何获取 Token 并�
 
 - Token 属于个人凭证，**请勿写入公开仓库或截图外传**；本仓库不包含任何真实 Token；
 - MealCI 不会代付、不索取支付凭据，`create-order` 返回的支付链接需用户自行完成支付。
+
+---
+
+## 七、完整调用流程
+
+一次典型的 MealCI 运行（用户输入 → MR 卡）按以下顺序调用 MCP：
+
+| 顺序 | Stage | 工具调用 | 入参要点 |
+|---|---|---|---|
+| 1 | 时间/彩蛋 | `now-time-info` | 无入参；判断是否进入深夜 strict 模式 |
+| 2 | lint | `list-nutrition-foods` | 无入参；按表头解析 toon 格式，逐项比对阈值 |
+| 3 | build | `query-nearby-stores` | `searchType=2` + `city` + `keyword` + `beType=1` |
+| 4 | review | `order-list` | 无入参；取近期订单算"距上次 commit 天数"与重复品项 |
+| 5 | 取商品编码 | `query-meals` | `storeCode` + `orderType=1` + `beType=1`；拿到 `productCode` |
+| 6 | test | `query-store-coupons` | `storeCode` + `orderType=1` + `beType=1`；无券则输出 `$COUPON 为空` |
+| 7 | 报价 | `calculate-price` | `items[{productCode, quantity}]`；返回单位"分" |
+| 8 | 合入（需用户确认） | `create-order` | 用户回复 `merge` 后才调用，返回支付链接 |
+
+**降级规则**：任一工具不可用时，对应 Stage 标记 `skipped (reason)`，其余照跑；MCP 整体不可用时输出 `runner offline`，不以模型内置知识冒充查询结果。
+
+## 八、业务价值
+
+| 维度 | 说明 |
+|---|---|
+| **用户价值** | 把"今天吃什么"从零决策变成一次有依据的评审：营养红线有 diff、优惠有测试报告、取餐有时间预期、饮食习惯有复盘。全程可解释、可回滚（`close` 不产生订单）。 |
+| **对麦当劳的价值** | ① **提升客单价与转化**：券组合穷举会把用户钱包里的券真正用起来，减少"有券没花"的流失；② **健康化引导**：营养 lint 用"低摩擦建议"替代硬拦截，推动无糖饮品/蔬食的替换率；③ **复购与习惯经营**：review 阶段以程序员语境回访历史订单，天然制造复购触点；④ **品牌心智**：1024 场景下与开发者群体的情绪共鸣，是常规投放买不到的曝光。 |
+| **技术示范价值** | 演示了把 MCP 从"查询接口"升级为"业务编排"的范式——6 个原子能力串成一条可解释的决策链，对后续开发者接入麦当劳 MCP 有直接参考意义（含踩坑清单）。 |
+
